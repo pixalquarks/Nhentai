@@ -7,6 +7,7 @@ from NhentaiManager import NHentaiOP as NHentai
 import SubTools as st
 from PIL import Image, ImageTk
 from io import BytesIO
+from threading import Thread
 
 
 nhentai = NHentai()
@@ -198,6 +199,9 @@ def test_menus():
         elif event == '_readOnline_':
         	toggleReadButtons(False,True,window)
         	get_Toggle_Read_Mode(change=True)
+        elif event == '_download_':
+        	t = Thread(target=st.download(doujinData["title"][0],doujinData["images"]))
+        	t.start()
 
         if get_Toggle_Read_Mode():
         	global count

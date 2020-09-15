@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
 import json
+# import asyncio
+# import aiohttp
 
 class NHentaiOP:
     def __init__(self):
