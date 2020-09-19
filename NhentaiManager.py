@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import json
+import SubTools as st
 # import asyncio
 # import aiohttp
 
@@ -27,6 +28,7 @@ class NHentaiOP:
 
 
     def _get_doujin(self, id: str) -> dict:
+        print("Finding hentai")
 
         doujin_page = requests.get(f'{self._BASE_URL}/g/{id}/')
         soup = BeautifulSoup(doujin_page.content, 'html.parser')
@@ -34,7 +36,7 @@ class NHentaiOP:
         return_object = {
             "id": "#" + id,
             "url": f'{self._BASE_URL}/g/{id}/',
-            "cover": "",
+            "cover": None,
             "title": [],
             "secondary_title": "",
             "tags": [],
@@ -48,7 +50,7 @@ class NHentaiOP:
 
         info_box = soup.find('div', id='info')
         cover_ = soup.find("div", id="cover").find("img", class_="lazyload")["data-src"]
-        return_object["cover"] = cover_
+        return_object["cover"] = st.getCoverData(cover_)
 
         if info_box is None:
             return None

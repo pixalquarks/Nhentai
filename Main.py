@@ -8,6 +8,8 @@ import SubTools as st
 from PIL import Image, ImageTk
 from io import BytesIO
 from threading import Thread
+import queue
+import time
 
 
 nhentai = NHentai()
@@ -23,6 +25,11 @@ readingMode = False
 autoRead = False
 count = 0
 
+current_thread = None
+result_list = []
+was_working = False
+doujinData = {}
+TIMEOUT = 1000
 
 # Reading Speed Values
 superSlow = 20
@@ -32,6 +39,14 @@ fast = 8
 superFast = 5
 
 
+q_search = queue.Queue()
+q_download = queue.Queue()
+
+def stopThisThing(printThis:str,nowPrintThis:str):
+	print("Okay" + printThis)
+	time.sleep(10)
+	print("done" + nowPrintThis)
+	return 10000
 
 def get_Toggle_Read_Mode(change=None):
 	global readingMode
@@ -41,14 +56,16 @@ def get_Toggle_Read_Mode(change=None):
 		readingMode = not readingMode
 
 
-def findhentai(num):
+def findhentai(hen_id:int,rslt_lst:list):
 	if not st.checkInternetConnection():
 		return
 	try:
-		random_doujin: dict = nhentai._get_doujin(id=str(num))
-		return random_doujin
+		random_doujin: dict = nhentai._get_doujin(id=str(hen_id))
+		rslt_lst.append(random_doujin)
+		rslt_lst.append("search")
+		return
 	except:
-		st.error_message_popup("Oops Coundn't fint the doujin you requested for, please try another code")
+		#st.error_message_popup("Oops Coundn't fint the doujin you requested for, please try another code")
 		return
 
 def OpenDoujinInTheBrowser(link):
@@ -89,7 +106,8 @@ def UpdateStuff(doujinData: dict, window):
 	window['_languages_'].update("  ".join(doujinData["languages"]))
 	window['_tagsofhentai_'+sg.WRITE_ONLY_KEY].print(", ".join(doujinData['tags']))
 	window['_pages_'].update(doujinData["pages"][0])
-	window["_coverImage_"].update(data=getImageFromUrl(doujinData["cover"],online=True))
+	#window["_coverImage_"].update(data=getImageFromUrl(doujinData["cover"],online=True))
+	window["_coverImage_"].update(data=doujinData["cover"])
 	URL = doujinData["url"]
 	window["_info_"].update(visible=True)
 	window["_cover_"].update(visible=True)
@@ -170,10 +188,14 @@ def test_menus():
 
     # ------ Loop & Process button menu choices ------ #
     while True:
-        event, values = window.read()
+        event, values = window.read(timeout=TIMEOUT)
         global doujinData
+        global result_list
+        # global current_thread
+        global was_working
+        
         if event is None or event == 'Exit':
-            return
+        	return
         # ------ Process menu choices ------ #
         if event == 'About...':
             window.disappear()
@@ -186,9 +208,12 @@ def test_menus():
         	if values['-Id-'] == '':
         		st.error_message_popup("Please Enter a code")
         	else:
-        		doujinData = findhentai(values["-Id-"])
-        		if doujinData != None:
-        			UpdateStuff(doujinData,window)	
+        		was_working = True
+        		window.FindElement('Search').update(disabled=True)
+        		src_thread = Thread(target=findhentai,args=(values["-Id-"],result_list))
+        		src_thread.start()
+        		# t = Thread(target=q_search.put,args=(findhentai(values["-Id-"]),))
+        		# t.start()
         elif event == 'Properties':
             st.error_message_popup()
         elif event == '-Goto-':
@@ -200,8 +225,13 @@ def test_menus():
         	toggleReadButtons(False,True,window)
         	get_Toggle_Read_Mode(change=True)
         elif event == '_download_':
-        	t = Thread(target=st.download(doujinData["title"][0],doujinData["images"]))
-        	t.start()
+        	# global result_list
+        	# global current_thread
+        	# global was_working
+        	was_working = True
+        	window.FindElement('_download_').update(disabled=True)
+        	dwn_thread = Thread(target=st.download,args=(doujinData["title"][0],doujinData["images"],result_list))
+        	dwn_thread.start()
 
         if get_Toggle_Read_Mode():
         	global count
@@ -222,11 +252,47 @@ def test_menus():
         		window["_coverImage_"].update(data=getImageFromUrl(doujinData["images"][count],online=True))	
         isAutoReadChecked = values['_autoRead_']	
         if isAutoReadChecked == True:
-        	print(True)
         	window['_readSpeed_'].update(visible=True)
         elif isAutoReadChecked == False:
-        	print(False)
         	window['_readSpeed_'].update(visible=False)
+        # if q_search.empty():
+        # 	pass
+        # else:
+        # 	doujinData = q_search.get()
+        # 	if doujinData != None:
+        # 		UpdateStuff(doujinData,window)
+        if was_working:
+        	checkThread(window)
+
+def checkThread(window):
+	# global current_thread
+	global result_list
+	global was_working
+	global doujinData
+	# if not was_working:
+	# 	return
+	# if current_thread.is_alive():
+	# 	return
+	if len(result_list) > 1:
+		if result_list[-1] == 'download':
+			was_working = False
+			sg.popup("Successfully downloaded " + str(result_list[0] - result_list[1]) + " out of " + str(result_list[0]) + " images in " + str(result_list[2]) + " seconds ")
+			result_list = []
+			current_thread = None
+			window.FindElement("_download_").update(disabled=False)
+			return
+		elif result_list[-1] == 'search':
+			doujinData = result_list[0]
+			if doujinData != None:
+				UpdateStuff(doujinData,window)
+			result_list = []
+			current_thread = None
+			was_working = False
+			window.FindElement('Search').update(disabled=False)
+			return
+
+
+
 
         # elif event == '_readOnline_':
 isConnected = st.checkInternetConnection()
@@ -237,3 +303,5 @@ test_menus()
 
 # things to remember
 # sg.pin function helps to keep column not to stack over each other when made invisible and visible again.11
+# 0.03600168228149414	0.014000415802001953	0.010001182556152344
+# 5.194819450378418	5.001678228378296 5.557114124298096

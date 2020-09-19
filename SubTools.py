@@ -64,8 +64,7 @@ async def getImageFromUrl(url, first=False,online=True,path=".\\NewTest.png"):
 	async with aiohttp.ClientSession() as session:
 		html = await waitForImage(session, url)
 		image = getImage_data(BytesIO(html),first)
-		print(type(html))
-		print(type(image))
+		return image
 
 
 async def download_images(image_urls:list,list_failed:list):
@@ -79,7 +78,7 @@ async def download_images(image_urls:list,list_failed:list):
         	tasks.append(await fetch(session, image, "Page - " + str(count) + ".jpg",list_failed))
     data = await asyncio.gather(*tasks)
 
-def download(name_of_hentai:str,image_urls:list):
+def download(name_of_hentai:str,image_urls:list,result_list:list):
 	if not checkInternetConnection():
 		return
 	t1 = time.time()
@@ -101,8 +100,23 @@ def download(name_of_hentai:str,image_urls:list):
 	os.chdir(path)
 	print("Path changes back to normal")
 	tt = time.time() - t1
+	result_list.append(len(image_urls))
+	result_list.append(len(list_failed))
+	result_list.append(tt)
+	result_list.append("download")
+	del list_failed
 	#error_message_popup("Downloaded " + str(len(image_urls) - len(list_failed)) + "out of " + str(len(image_urls)) + "images. Total time taken to download was " + str(tt) + "seconds")
 	print(tt)
+
+def getCoverData(url:str):
+	# loop = asyncio.new_event_loop()
+	# asyncio.set_event_loop(loop)
+	try:
+		image = asyncio.run(getImageFromUrl(url,first=True))
+	except:
+		pass
+	# loop.close()
+	return image
 
 if __name__ == '__main__':
 	loop = asyncio.get_event_loop()
