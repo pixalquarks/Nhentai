@@ -9,6 +9,36 @@ from io import BytesIO
 import time
 # from Main import error_message_popup
 
+
+def checkInternetConnection():
+	try:
+		r = requests.get("http://www.goolge.com", timeout=3)
+		return True
+	except:
+		error_message_popup("Oops, looks like you are not connected to the internet, Please check your connection and retry")
+		return False
+
+def getImageFromUrlSync(url, first=False, online=False,size=(400,400),path = ".\\NewTest.png"):
+  if not online:
+    return getImage_dataSync(path,first=first)
+  if not checkInternetConnection():
+    return
+  image_bytes = requests.get(url).content
+  return getImage_dataSync(BytesIO(image_bytes),first,size=size)
+
+
+def getImage_dataSync(filename: str, first=False, size=(400,400)):
+  img = Image.open(filename)
+  img.thumbnail(size)
+  if first:
+    bio = BytesIO()
+    img.save(bio,format="PNG")
+    del img 
+    return bio.getvalue()
+  return ImageTk.PhotoImage(img)
+
+
+
 def error_message_popup(errorMessage: str):
 
     layout = [[sg.Text(errorMessage)],
@@ -19,13 +49,7 @@ def error_message_popup(errorMessage: str):
     window.close()
 
 
-def checkInternetConnection():
-	try:
-		r = requests.get("http://www.goolge.com", timeout=3)
-		return True
-	except:
-		error_message_popup("Oops, looks like you are not connected to the internet, Please check your connection and retry")
-		return False
+
 
 
 async def waitForImage(session, url, first=False):
@@ -36,15 +60,15 @@ async def waitForImage(session, url, first=False):
 # 	async with session.get(url) as response:
 # 		return await response.read()
 
-def getImage_data(filename: str, first=False, size=(400,400)):
-	img = Image.open(filename)
-	img.thumbnail(size)
-	if first:
-		bio = BytesIO()
-		img.save(bio,format="PNG")
-		del img 
-		return bio.getvalue()
-	return ImageTk.PhotoImage(img)
+# def getImage_data(filename: str, first=False, size=(400,400)):
+# 	img = Image.open(filename)
+# 	img.thumbnail(size)
+# 	if first:
+# 		bio = BytesIO()
+# 		img.save(bio,format="PNG")
+# 		del img 
+# 		return bio.getvalue()
+# 	return ImageTk.PhotoImage(img)
 
 async def fetch(session, url, page_no:str, list_failed):
     async with session.get(url) as resp:
@@ -63,7 +87,7 @@ async def getImageFromUrl(url, first=False,online=True,path=".\\NewTest.png"):
 		return
 	async with aiohttp.ClientSession() as session:
 		html = await waitForImage(session, url)
-		image = getImage_data(BytesIO(html),first)
+		image = getImage_dataSync(BytesIO(html),first)
 		return image
 
 

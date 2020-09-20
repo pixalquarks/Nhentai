@@ -8,9 +8,8 @@ import SubTools as st
 from PIL import Image, ImageTk
 from io import BytesIO
 from threading import Thread
-import queue
 import time
-
+import Reader
 
 nhentai = NHentai()
 image_play = ".\\PLAY_.png"
@@ -39,9 +38,6 @@ fast = 8
 superFast = 5
 
 
-q_search = queue.Queue()
-q_download = queue.Queue()
-
 def stopThisThing(printThis:str,nowPrintThis:str):
 	print("Okay" + printThis)
 	time.sleep(10)
@@ -57,12 +53,14 @@ def get_Toggle_Read_Mode(change=None):
 
 
 def findhentai(hen_id:int,rslt_lst:list):
+	print("Searching..")
 	if not st.checkInternetConnection():
 		return
 	try:
 		random_doujin: dict = nhentai._get_doujin(id=str(hen_id))
 		rslt_lst.append(random_doujin)
 		rslt_lst.append("search")
+		print("Found Hentai")
 		return
 	except:
 		#st.error_message_popup("Oops Coundn't fint the doujin you requested for, please try another code")
@@ -209,9 +207,11 @@ def test_menus():
         		st.error_message_popup("Please Enter a code")
         	else:
         		was_working = True
+        		print("Here in search")
         		window.FindElement('Search').update(disabled=True)
         		src_thread = Thread(target=findhentai,args=(values["-Id-"],result_list))
         		src_thread.start()
+        		print("Searching")
         		# t = Thread(target=q_search.put,args=(findhentai(values["-Id-"]),))
         		# t.start()
         elif event == 'Properties':
@@ -222,8 +222,9 @@ def test_menus():
         	except:
         		st.error_message_popup("Please Search a doujin first")
         elif event == '_readOnline_':
-        	toggleReadButtons(False,True,window)
-        	get_Toggle_Read_Mode(change=True)
+        	#toggleReadButtons(False,True,window)
+        	#get_Toggle_Read_Mode(change=True)
+        	Reader.Reader(doujinData["images"],autoRead=True,readSpeed=10)
         elif event == '_download_':
         	# global result_list
         	# global current_thread
@@ -302,6 +303,4 @@ test_menus()
 
 
 # things to remember
-# sg.pin function helps to keep column not to stack over each other when made invisible and visible again.11
-# 0.03600168228149414	0.014000415802001953	0.010001182556152344
-# 5.194819450378418	5.001678228378296 5.557114124298096
+# sg.pin function helps to keep column not to stack over each other when made invisible and visible again.
