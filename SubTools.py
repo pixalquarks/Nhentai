@@ -7,8 +7,10 @@ import PySimpleGUI as sg
 from PIL import Image, ImageTk
 from io import BytesIO
 import time
+from Encrypter_Test import Encryptor, key
 # from Main import error_message_popup
 
+encryptor = Encryptor(key)
 
 def checkInternetConnection():
 	try:
@@ -49,6 +51,23 @@ def error_message_popup(errorMessage: str):
     window.close()
 
 
+def encryptor_window(message: str,hentai):
+
+	layout = [
+				[sg.Text(message)],
+				[sg.Text("Do you want to encrypt the doujin")],
+				[sg.Button("Hai, onegaishimasu",key="_onegai_"),sg.Button("Naah, No one touches my device",key="_cancel_")]				
+				]
+
+	window = sg.Window('Done', layout)
+	event, values = window.read()
+	if event == '_onegai_':
+		print("Yes doing it")
+		encryptor.encrypt_all_files(hentai)
+
+	window.close()
+
+
 
 
 
@@ -80,6 +99,7 @@ async def fetch(session, url, page_no:str, list_failed):
         else:
         	list_failed.append(page_no)
 
+
 async def getImageFromUrl(url, first=False,online=True,path=".\\NewTest.png"):
 	if not online:
 		return getImage_data(path,first=first)
@@ -98,11 +118,17 @@ async def download_images(image_urls:list,list_failed:list):
         "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}
     async with aiohttp.ClientSession(headers=headers) as session:
         for image in image_urls:
-        	count += 1
         	tasks.append(await fetch(session, image, "Page - " + str(count) + ".jpg",list_failed))
+        	count += 1
     data = await asyncio.gather(*tasks)
 
 def download(name_of_hentai:str,image_urls:list,result_list:list):
+	if os.path.isdir(name_of_hentai):
+		result_list.append(len(image_urls))
+		result_list.append(0)
+		result_list.append(0.00)
+		result_list.append("download")
+		return
 	if not checkInternetConnection():
 		return
 	t1 = time.time()
@@ -121,7 +147,7 @@ def download(name_of_hentai:str,image_urls:list,result_list:list):
 		asyncio.run(download_images(image_urls, list_failed))
 	except TypeError as e:
 		pass
-	os.chdir(path)
+	os.chdir(path_original)
 	print("Path changes back to normal")
 	tt = time.time() - t1
 	result_list.append(len(image_urls))
@@ -144,5 +170,5 @@ def getCoverData(url:str):
 
 if __name__ == '__main__':
 	loop = asyncio.get_event_loop()
-	loop.run_until_complete(getImageFromUrl("https://t.nhentai.net/galleries/710253/cover.jpg",first=True))
+	loop.run_until_complete(download_images("https://t.nhentai.net/galleries/710253/cover.jpg",first=True))
 	print('okay')

@@ -231,7 +231,7 @@ def test_menus():
         	# global was_working
         	was_working = True
         	window.FindElement('_download_').update(disabled=True)
-        	dwn_thread = Thread(target=st.download,args=(doujinData["title"][0],doujinData["images"],result_list))
+        	dwn_thread = Thread(target=st.download,args=(doujinData["title"][1],doujinData["images"],result_list))
         	dwn_thread.start()
 
         if get_Toggle_Read_Mode():
@@ -277,7 +277,9 @@ def checkThread(window):
 	if len(result_list) > 1:
 		if result_list[-1] == 'download':
 			was_working = False
-			sg.popup("Successfully downloaded " + str(result_list[0] - result_list[1]) + " out of " + str(result_list[0]) + " images in " + str(result_list[2]) + " seconds ")
+			message = "Successfully downloaded " + str(result_list[0] - result_list[1]) + " out of " + str(result_list[0]) + " images in " + str(result_list[2]) + " seconds "
+			#sg.popup("Successfully downloaded " + str(result_list[0] - result_list[1]) + " out of " + str(result_list[0]) + " images in " + str(result_list[2]) + " seconds ")
+			st.encryptor_window(message,doujinData["title"][1])
 			result_list = []
 			current_thread = None
 			window.FindElement("_download_").update(disabled=False)
