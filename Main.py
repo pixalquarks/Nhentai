@@ -1,6 +1,7 @@
 # A simple GUI program based on PySimpleGUI(tkinter) framework. 
 # Searches for the doujin based on the entered code, can be downloaded too.
 # Author - pixalquarks
+# BTW my favourite doujinhi is 111082, read it for sure
 
 
 
@@ -82,7 +83,7 @@ def OpenDoujinInTheBrowser(link):
 		st.error_message_popup("Oops, I guess something went wrong")
 
 
-def getImageFromUrl(url, first=False, online=False,path = ".\\NewTest.png"):
+def getImageFromUrl(url, first=False, online=False,path = ".\\PLAY_.png"):
 	if not online:
 		return getImage_data(path,first=first)
 	if not st.checkInternetConnection():
@@ -111,7 +112,7 @@ def UpdateStuff(doujinData: dict, window):
 	window['_languages_'].update("  ".join(doujinData["languages"]))
 	window['_tagsofhentai_'+sg.WRITE_ONLY_KEY].print(", ".join(doujinData['tags']))
 	window['_pages_'].update(doujinData["pages"][0])
-	window["_coverImage_"].update(data=getImageFromUrl(doujinData["cover"],online=True))
+	#window["_coverImage_"].update(data=getImageFromUrl(doujinData["cover"],online=True))
 	window["_coverImage_"].update(data=doujinData["cover"])
 	URL = doujinData["url"]
 	window["_info_"].update(visible=True)
