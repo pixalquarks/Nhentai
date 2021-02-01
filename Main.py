@@ -1,14 +1,21 @@
+# A simple GUI program based on PySimpleGUI(tkinter) framework. 
+# Searches for the doujin based on the entered code, can be downloaded too.
+# Author - pixalquarks
+
+
+
+import os
+import base64
+import time
+from io import BytesIO
+
+import requests
 import PySimpleGUI as sg
 import subprocess
-import requests
-import base64
-import os
 from NhentaiManager import NHentaiOP as NHentai
 import SubTools as st
 from PIL import Image, ImageTk
-from io import BytesIO
 from threading import Thread
-import time
 import Reader
 
 nhentai = NHentai()
@@ -104,7 +111,7 @@ def UpdateStuff(doujinData: dict, window):
 	window['_languages_'].update("  ".join(doujinData["languages"]))
 	window['_tagsofhentai_'+sg.WRITE_ONLY_KEY].print(", ".join(doujinData['tags']))
 	window['_pages_'].update(doujinData["pages"][0])
-	#window["_coverImage_"].update(data=getImageFromUrl(doujinData["cover"],online=True))
+	window["_coverImage_"].update(data=getImageFromUrl(doujinData["cover"],online=True))
 	window["_coverImage_"].update(data=doujinData["cover"])
 	URL = doujinData["url"]
 	window["_info_"].update(visible=True)

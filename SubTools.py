@@ -136,13 +136,9 @@ def download(name_of_hentai:str,image_urls:list,result_list:list):
 	path_original = os.getcwd()
 	print(path_original)
 	path = path_original + "\\" + name_of_hentai
-	try:
-		os.mkdir(path)
-	except FileExistsError as e:
-		print("Folder already exists")
-	finally:
-		os.chdir(path)
-		print("path changed")
+	os.mkdir(path)
+	os.chdir(path)
+	print("path changed")
 	try:
 		asyncio.run(download_images(image_urls, list_failed))
 	except TypeError as e:

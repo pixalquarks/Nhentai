@@ -32,6 +32,7 @@ class NHentaiOP:
 
         doujin_page = requests.get(f'{self._BASE_URL}/g/{id}/')
         soup = BeautifulSoup(doujin_page.content, 'html.parser')
+        print("Parsed hentai")
 
         return_object = {
             "id": "#" + id,
